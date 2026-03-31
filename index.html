@@ -6,37 +6,46 @@
 <title>نظام محل الخضار والفواكه</title>
 
 <style>
-body {
+body{
   font-family: Arial;
-  background: #f5f5f5;
-  margin: 0;
-  padding: 20px;
+  background:#f5f5f5;
+  padding:20px;
 }
-
-h1 {
-  text-align: center;
+h1{
+  text-align:center;
 }
-
-.container {
-  background: white;
-  padding: 20px;
-  border-radius: 10px;
+.box{
+  background:#fff;
+  padding:20px;
+  border-radius:10px;
+  margin-top:20px;
+}
+input,button{
+  padding:10px;
+  margin:5px;
 }
 </style>
 
 </head>
-
 <body>
 
 <h1>برنامج إدارة محل خضار</h1>
 
-<div class="container">
-  <p>✔ البرنامج شغال</p>
+<div class="box">
+  <h3>➕ إضافة عميل</h3>
+  <input id="cname" placeholder="اسم العميل">
+  <input id="cphone" placeholder="رقم الهاتف">
+  <button onclick="addCustomer()">إضافة</button>
 </div>
 
-<!-- أهم جزء -->
-<script src="js/app.js?v=10"></script>
-<script src="js/ui.js?v=10"></script>
+<div class="box">
+  <h3>📋 العملاء</h3>
+  <div id="customersList"></div>
+</div>
+
+<!-- أهم حاجة: ترتيب السكريبتات -->
+<script src="js/app.js"></script>
+<script src="js/ui.js"></script>
 
 </body>
 </html>
