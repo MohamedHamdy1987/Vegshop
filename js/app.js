@@ -111,3 +111,4 @@ function addSale(){
 function init(){
   load();
 }
+init();
