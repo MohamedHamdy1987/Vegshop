@@ -1533,10 +1533,14 @@ function showShopList(){document.getElementById('shop-list-view').style.display=
 // START
 <script>
 <script src="js/app.js"></script>
-<script src="js/ui.js"></script>
 
 <script>
-init();
+try{
+  init();
+  alert("INIT OK");
+}catch(e){
+  alert(e.message);
+}
 </script>
 
 </body>
