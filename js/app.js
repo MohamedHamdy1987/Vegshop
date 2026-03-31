@@ -105,3 +105,9 @@ function addSale(){
   save();
   renderSales();
 }
+// ========================
+// INIT
+// ========================
+function init(){
+  load();
+}
