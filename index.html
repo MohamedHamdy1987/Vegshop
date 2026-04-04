@@ -150,9 +150,70 @@ function showAuthErr(msg){ const el = document.getElementById('auth-err'); el.te
 async function doLogin(){ const email = document.getElementById('login-email').value.trim(); const pass = document.getElementById('login-pass').value; if(!email||!pass) return showAuthErr('أدخل البريد وكلمة المرور'); const btn = document.getElementById('login-btn'); btn.disabled=true; btn.textContent='جاري الدخول...'; try{ const {data,error} = await sb.auth.signInWithPassword({email,password:pass}); if(error) throw error; currentUser = data.user; await loadUserData(); showApp(); } catch(e){ showAuthErr('خطأ في البريد أو كلمة المرور'); btn.disabled=false; btn.textContent='🔑 دخول'; } }
 async function doRegister(){ const shop = document.getElementById('reg-shop').value.trim(); const email = document.getElementById('reg-email').value.trim(); const pass = document.getElementById('reg-pass').value; const pass2 = document.getElementById('reg-pass2').value; if(!shop||!email||!pass) return showAuthErr('أكمل جميع البيانات'); if(pass !== pass2) return showAuthErr('كلمة المرور غير متطابقة'); if(pass.length < 8) return showAuthErr('كلمة المرور أقل من ٨ أحرف'); const btn = document.getElementById('reg-btn'); btn.disabled=true; btn.textContent='جاري الإنشاء...'; try{ const trialEnds = new Date(Date.now() + 14*24*60*60*1000).toISOString(); const {data,error} = await sb.auth.signUp({ email, password:pass, options:{ data:{ shop_name:shop, subscription:'trial', trial_ends:trialEnds } } }); if(error) throw error; currentUser = data.user; document.getElementById('shop-name-header').textContent = shop; await saveData(); showApp(); } catch(e){ showAuthErr('حدث خطأ: '+e.message); btn.disabled=false; btn.textContent='✅ إنشاء حساب مجاني'; } }
 async function doLogout(){ await sb.auth.signOut(); currentUser = null; S = {date:fmtDate(new Date()),products:[],customers:[],suppliers:[],invoices:[],collections:[],expenses:[],tarhilLog:{},employees:[],partners:[],shops:[]}; closeModal('user-modal'); showAuth(); }
-async function loadUserData(){ try{ if(!currentUser) return; const {data,error} = await sb.from('shop_data').select('data').eq('user_id', currentUser.id).single(); if(data && data.data){ S = JSON.parse(data.data); if(!S.employees) S.employees = []; if(!S.partners) S.partners = []; if(!S.shops) S.shops = []; } const meta = currentUser.user_metadata; if(meta && meta.shop_name) document.getElementById('shop-name-header').textContent = meta.shop_name; } catch(e){ const local = localStorage.getItem('veg_local'); if(local){ S = JSON.parse(local); } } }
+async function loadUserData(){
+  try{
+    if(!currentUser) return;
+
+    const {data, error} = await sb
+      .from('shop_data')
+      .select('data')
+      .eq('user_id', currentUser.id)
+      .maybeSingle(); // ✅
+
+    if(data && data.data){
+      S = JSON.parse(data.data);
+    }
+
+  } catch(e){
+    console.log('fallback local');
+    const local = localStorage.getItem('veg_local');
+    if(local){
+      S = JSON.parse(local);
+    }
+  }
+}
 function setSyncStatus(status, msg){ const bar = document.getElementById('sync-bar'); const text = document.getElementById('sync-text'); bar.className = 'sync-bar ' + status; text.textContent = msg; }
-async function saveData(){ try{ localStorage.setItem('veg_local', JSON.stringify(S)); }catch(e){} if(!currentUser){ setSyncStatus('','محفوظ محلياً'); return; } setSyncStatus('saving','جاري الحفظ...'); try{ const {data:existing} = await sb.from('shop_data').select('id').eq('user_id', currentUser.id).single(); const payload = { user_id: currentUser.id, data: JSON.stringify(S), updated_at: new Date().toISOString() }; if(existing) await sb.from('shop_data').update(payload).eq('user_id', currentUser.id); else await sb.from('shop_data').insert(payload); setSyncStatus('','محفوظ على السحابة ✓ ' + new Date().toLocaleTimeString('ar-EG')); } catch(e){ setSyncStatus('error','خطأ في الحفظ — محفوظ محلياً'); } }
+async function saveData(){
+  try{
+    localStorage.setItem('veg_local', JSON.stringify(S));
+  }catch(e){}
+
+  if(!currentUser){
+    setSyncStatus('','محفوظ محلياً');
+    return;
+  }
+
+  setSyncStatus('saving','جاري الحفظ...');
+
+  try{
+    const { data: existing, error } = await sb
+      .from('shop_data')
+      .select('id')
+      .eq('user_id', currentUser.id)
+      .maybeSingle(); // ✅ بدل single
+
+    const payload = {
+      user_id: currentUser.id,
+      data: JSON.stringify(S),
+      updated_at: new Date().toISOString()
+    };
+
+    if(existing){
+      await sb.from('shop_data')
+        .update(payload)
+        .eq('user_id', currentUser.id);
+    } else {
+      await sb.from('shop_data')
+        .insert(payload);
+    }
+
+    setSyncStatus('','محفوظ على السحابة ✓');
+
+  } catch(e){
+    console.error(e);
+    setSyncStatus('error','خطأ في الحفظ — محفوظ محلياً');
+  }
+}
 function save(){ clearTimeout(saveTimer); saveTimer = setTimeout(saveData, 1500); }
 function showPage(n,btn){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active')); document.getElementById('page-'+n).classList.add('active'); if(btn)btn.classList.add('active'); renderAll(); if(n === 'admin') loadAdminPayments(); }
 function showKTab(t,btn){ document.getElementById('ks-col').style.display = t==='col'?'block':'none'; document.getElementById('ks-exp').style.display = t==='exp'?'block':'none'; }
@@ -189,7 +250,21 @@ function checkAutoInvoice(supplierId){ const sp=S.products.filter(p=>p.supplierI
 function addToTarhil(custId,pName,qty,unit,wt,price,total){ if(!custId)return; if(!S.tarhilLog[S.date])S.tarhilLog[S.date]={}; if(!S.tarhilLog[S.date][custId])S.tarhilLog[S.date][custId]=[]; S.tarhilLog[S.date][custId].push({productName:pName,qty,unit,weight:wt,price,total}); }
 function removeFromTarhil(custId,date,total){ if(!custId||!S.tarhilLog[date]||!S.tarhilLog[date][custId])return; const idx=S.tarhilLog[date][custId].findIndex(t=>t.total===total); if(idx>=0)S.tarhilLog[date][custId].splice(idx,1); postDailyTotal(custId,date); }
 function postDailyTotal(custId,date){ const cust=S.customers.find(c=>c.id==custId);if(!cust)return; cust.ledger=cust.ledger.filter(e=>!(e.type==='order'&&e.isTarhil&&e.date===date)); const items=(S.tarhilLog[date]&&S.tarhilLog[date][custId])||[]; if(!items.length)return; const dayTotal=items.reduce((s,t)=>s+t.total,0); cust.ledger.push({date,type:'order',amount:dayTotal,ref:'يومية',isTarhil:true,tarhilDate:date}); }
-function renderTarhil(){ const log=S.tarhilLog[S.date]||{}; const ids=Object.keys(log).filter(id=>log[id]&&log[id].length>0); document.getElementById('tarhil-body').innerHTML=ids.length?ids.map(cid=>{ const cust=S.customers.find(c=>c.id==cid); const items=log[cid];const tot=items.reduce((s,t)=>s+t.total,0); return `<div style="background:#fff;border:1.5px solid #d6eaf8;border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer;" onclick="this.querySelector('.tc-b').classList.toggle('open')"><div style="padding:9px 12px;background:var(--blue-light);display:flex;align-items:center;gap:8px"><span>👤</span><span style="font-weight:800;color:var(--blue)">${cust?cust.name:'محذوف'}</span><span style="margin-right:auto;font-weight:900;color:var(--blue)">يومية: ${N(tot)} جنيه</span><span>▼</span></div><div class="tc-b" style="display:none;padding:10px 12px;border-top:1.5px solid #d6eaf8"><table style="width:100%;border-collapse:collapse;font-size:0.8rem"><thead><tr style="background:#f0f7f0"><th>الصنف</th><th>عدد</th><th>وزن(ك)</th><th>سعر</th><th>المبلغ</th></tr></thead><tbody>${items.map(t=>`<tr><td style="padding:5px;font-weight:700">${t.productName}</td><td style="padding:5px">${t.qty||'-'}</td><td style="padding:5px">${t.weight||'-'}</td><td style="padding:5px">${t.price} جنيه</td><td style="padding:5px;font-weight:900;color:var(--green)">${N(t.total)} جنيه</td></tr>`).join('')}</tbody><tfoot><tr style="background:#eafaf1;font-weight:900"><td colspan="4" style="text-align:right;padding:5px">إجمالي اليومية</td><td style="padding:5px;color:var(--green)">${N(tot)} جنيه</td></tr></tfoot></table></div></div>`; }).join(''):'<p style="text-align:center;color:#aaa;padding:24px">لا توجد ترحيلات اليوم</p>'; }
+function renderTarhil(){ const log=S.tarhilLog[S.date]||{}; const ids=Object.keys(log).filter(id=>log[id]&&log[id].length>0); document.getElementById('tarhil-body').innerHTML=ids.length?ids.map(cid=>{ const cust=S.customers.find(c=>c.id==cid); const items=log[cid];const tot=items.reduce((s,t)=>s+t.total,0); return `<div style="background:#fff;border:1.5px solid #d6eaf8;border-radius:10px;margin-bottom:8px;overflow:hidden;cursor:pointer;" onclick="
+let el = this.querySelector('.tc-b');
+if(el.style.display === 'none'){
+  el.style.display = 'block';
+} else {
+  el.style.display = 'none';
+}
+">
+<div style="padding:9px 12px;background:var(--blue-light);display:flex;align-items:center;gap:8px">
+<span>👤</span>
+<span style="font-weight:800;color:var(--blue)">${cust?cust.name:'محذوف'}</span>
+<span style="margin-right:auto;font-weight:900;color:var(--blue)">يومية: ${N(tot)} جنيه</span>
+<span>▼</span>
+</div>
+<div class="tc-b" style="display:none;padding:10px 12px;border-top:1.5px solid #d6eaf8">><table style="width:100%;border-collapse:collapse;font-size:0.8rem"><thead><tr style="background:#f0f7f0"><th>الصنف</th><th>عدد</th><th>وزن(ك)</th><th>سعر</th><th>المبلغ</th></tr></thead><tbody>${items.map(t=>`<tr><td style="padding:5px;font-weight:700">${t.productName}</td><td style="padding:5px">${t.qty||'-'}</td><td style="padding:5px">${t.weight||'-'}</td><td style="padding:5px">${t.price} جنيه</td><td style="padding:5px;font-weight:900;color:var(--green)">${N(t.total)} جنيه</td></tr>`).join('')}</tbody><tfoot><tr style="background:#eafaf1;font-weight:900"><td colspan="4" style="text-align:right;padding:5px">إجمالي اليومية</td><td style="padding:5px;color:var(--green)">${N(tot)} جنيه</td></tr></tfoot></table></div></div>`; }).join(''):'<p style="text-align:center;color:#aaa;padding:24px">لا توجد ترحيلات اليوم</p>'; }
 function goToTarhilDate(date){ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active')); document.querySelectorAll('nav.tabs button').forEach(b=>b.classList.remove('active')); document.getElementById('page-tarhil').classList.add('active'); document.querySelectorAll('nav.tabs button')[3].classList.add('active'); const log=S.tarhilLog[date]||{}; const ids=Object.keys(log).filter(id=>log[id]&&log[id].length>0); document.getElementById('tarhil-badge').textContent=date; document.getElementById('tarhil-body').innerHTML=ids.length?ids.map(cid=>{ const cust=S.customers.find(c=>c.id==cid); const items=log[cid];const tot=items.reduce((s,t)=>s+t.total,0); return `<div style="background:#fff;border:1.5px solid #d6eaf8;border-radius:10px;margin-bottom:8px;overflow:hidden;"><div style="padding:9px 12px;background:var(--blue-light);display:flex;align-items:center;gap:8px"><span>👤</span><span style="font-weight:800;color:var(--blue)">${cust?cust.name:'محذوف'}</span><span style="margin-right:auto;font-weight:900;color:var(--blue)">${N(tot)} جنيه</span></div><div style="padding:10px 12px"><table style="width:100%;border-collapse:collapse;font-size:0.8rem"><thead><tr style="background:#f0f7f0"><th>الصنف</th><th>عدد</th><th>وزن(ك)</th><th>سعر</th><th>المبلغ</th></tr></thead><tbody>${items.map(t=>`<tr><td style="padding:5px;font-weight:700">${t.productName}</td><td style="padding:5px">${t.qty||'-'}</td><td style="padding:5px">${t.weight||'-'}</td><td style="padding:5px">${t.price} جنيه</td><td style="padding:5px;font-weight:900;color:var(--green)">${N(t.total)} جنيه</td></tr>`).join('')}</tbody><tfoot><tr style="background:#eafaf1;font-weight:900"><td colspan="4" style="text-align:right;padding:5px">إجمالي اليومية</td><td style="padding:5px;color:var(--green)">${N(tot)} جنيه</td></tr></tfoot></table></div></div>`; }).join(''):'<p style="text-align:center;color:#aaa;padding:24px">لا توجد ترحيلات</p>'; }
 function addSupplier(){ const name=document.getElementById('ns-name').value.trim(); const phone=document.getElementById('ns-phone').value.trim(); if(!name)return alert('أدخل اسم المورد'); S.suppliers.push({id:Date.now(),name,phone,ledger:[]}); ['ns-name','ns-phone'].forEach(id=>document.getElementById(id).value=''); save();renderAll(); }
 function getSuppBal(id){ const s=S.suppliers.find(x=>x.id==id); if(!s) return 0; return s.ledger.reduce((s,e)=>e.type==='invoice'?s+e.amount:s-e.amount,0); }
