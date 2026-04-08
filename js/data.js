@@ -1,8 +1,8 @@
 // ===================== data.js — طبقة البيانات النقية مع إدارة التعارضات والإصدارات =====================
 
 const SUPABASE_URL = 'https://lfhrorjiukzkqhafjtdd.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmaHJvcmppdWt6a3FoYWZqdGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3OTc3NTgsImV4cCI6MjA5MDM3Mzc1OH0.eQ0w4DG_-DNvnJRJxgvJ7KhNNkBhOEswQhtbiO2my3Q';
-const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmaHJvcmppdWt6a3FoYWZqdGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3OTc3NTgsImV4cCI6MjA5MDM3Mzc1OH0.eQ0w4DG_-DNvnJRJxgvJ7KhNNkBhOEswQhtbiO2my3Q';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 // ─────────────────────────────────────────────
 // 🗃️ State Manager مع دعم الإصدارات والتعارضات
@@ -170,7 +170,6 @@ async function syncWithCloud() {
   try {
     syncUI.setStatus('saving', 'جاري المزامنة...');
     
-    // الحصول على أحدث نسخة من السحابة
     const { data: remoteData, error: fetchError } = await sb
       .from('shop_data')
       .select('data, updated_at, version')
@@ -184,18 +183,15 @@ async function syncWithCloud() {
     let localUpdated = new Date(S.lastUpdated || 0);
     let remoteUpdated = new Date(remoteData?.updated_at || 0);
     
-    // حل التعارض: من لديه أحدث تاريخ يفوز
     let finalState = null;
     let finalVersion = Math.max(localVersion, remoteVersion) + 1;
     
     if (remoteUpdated > localUpdated && remoteData?.data) {
-      // السحابة أحدث -> نستخدمها
       finalState = JSON.parse(remoteData.data);
       finalVersion = remoteData.version + 1;
       store.replace(finalState);
       syncUI.setStatus('', 'تم التحديث من السحابة');
     } else if (localUpdated > remoteUpdated) {
-      // المحلي أحدث -> نرفع إلى السحابة
       finalState = store.serialize();
       finalVersion = localVersion + 1;
       const { error: upsertError } = await sb
@@ -212,7 +208,6 @@ async function syncWithCloud() {
       store._persist();
       syncUI.setStatus('', 'محفوظ على السحابة ✓');
     } else {
-      // متساويان أو لا يوجد تعارض
       syncUI.setStatus('', 'محفوظ على السحابة ✓');
     }
     
@@ -247,11 +242,9 @@ async function loadUserData() {
         store.replace(remoteState);
         syncUI.setStatus('', 'تم التحميل من السحابة');
       } else {
-        // المحلي أحدث أو متساوٍ
         await syncWithCloud();
       }
     } else {
-      // لا توجد بيانات سحابية -> نرفع المحلية
       await syncWithCloud();
     }
   } catch (e) {
@@ -260,9 +253,6 @@ async function loadUserData() {
   }
 }
 
-// ─────────────────────────────────────────────
-// 💾 حفظ سريع للاستخدام اليدوي
-// ─────────────────────────────────────────────
 function save() {
   store._persist();
   syncWithCloud();
@@ -272,10 +262,8 @@ function saveData() {
   return syncWithCloud();
 }
 
-// تهيئة المتجر
 store.init();
 
-// تصدير للاستخدام العالمي
 window.S = S;
 window.store = store;
 window.save = save;
