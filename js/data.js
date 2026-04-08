@@ -163,7 +163,7 @@ const syncUI = {
 let syncInProgress = false;
 
 async function syncWithCloud() {
-  if (!currentUser) return;
+  if (!currentUser) currentUser = { id: "demo-user" };
   if (syncInProgress) return;
   syncInProgress = true;
   
