@@ -1,4 +1,4 @@
-// ===================== app.js — النقطة الرئيسية لتشغيل التطبيق (معدل) =====================
+// ===================== app.js — النقطة الرئيسية لتشغيل التطبيق (مصحح) =====================
 
 // ─────────────────────────────────────────────
 // 🔄 Listener لشريط المزامنة
@@ -39,15 +39,15 @@ const PAGE_RENDERS = {
   nazil:        () => { refreshDropdowns(); renderNazilList(); },
   sales:        () => { refreshDropdowns(); renderSalesTable(); },
   tarhil:       () => { renderTarhil(); },
-  customers:    () => { renderCustomersPage(); },
-  suppliers:    () => { renderSuppliersPage(); },
-  invoices:     () => { refreshDropdowns(); renderInvoicesPageWithPagination(); },
+  customers:    () => { if (typeof renderCustomersPage === 'function') renderCustomersPage(); else renderCustList(); },
+  suppliers:    () => { if (typeof renderSuppliersPage === 'function') renderSuppliersPage(); else renderSuppList(); },
+  invoices:     () => { refreshDropdowns(); if (typeof renderInvoicesPageWithPagination === 'function') renderInvoicesPageWithPagination(); else renderInvoicesPage(); },
   employees:    () => { renderEmployees(); },
   partners:     () => { renderPartners(); },
   shops:        () => { renderShops(); },
   khazna:       () => { refreshDropdowns(); renderCollections(); renderExpenses(); renderDaySummary(); },
   subscription: () => { renderSubscriptionStatus(); },
-  admin:        () => { if (isAdmin()) loadAdminPayments(); else document.getElementById('admin-payments-list').innerHTML = '<p>غير مصرح</p>'; }
+  admin:        () => { if (typeof isAdmin === 'function' && isAdmin()) loadAdminPayments(); else document.getElementById('admin-payments-list').innerHTML = '<p>غير مصرح</p>'; }
 };
 
 let _activePage = 'sales';
@@ -64,9 +64,12 @@ function renderAll() {
   safeRender('nazil', renderNazilList);
   safeRender('sales', renderSalesTable);
   safeRender('tarhil', renderTarhil);
-  safeRender('customers', renderCustomersPage);
-  safeRender('suppliers', renderSuppliersPage);
-  safeRender('invoices', renderInvoicesPageWithPagination);
+  if (typeof renderCustomersPage === 'function') safeRender('customers', renderCustomersPage);
+  else safeRender('customers', renderCustList);
+  if (typeof renderSuppliersPage === 'function') safeRender('suppliers', renderSuppliersPage);
+  else safeRender('suppliers', renderSuppList);
+  if (typeof renderInvoicesPageWithPagination === 'function') safeRender('invoices', renderInvoicesPageWithPagination);
+  else safeRender('invoices', renderInvoicesPage);
   safeRender('collections', renderCollections);
   safeRender('expenses', renderExpenses);
   safeRender('summary', renderDaySummary);
@@ -77,7 +80,7 @@ function renderAll() {
 
 function refreshDropdowns() {
   const suppOpts = '<option value="">-- اختر --</option>' +
-    S.suppliers.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    (S.suppliers || []).map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
   ['np-supplier', 'inv-supp-sel'].forEach(id => {
     const el = document.getElementById(id);
     if (el) el.innerHTML = suppOpts;
@@ -85,11 +88,11 @@ function refreshDropdowns() {
 
   const cc = document.getElementById('col-cust-sel');
   if (cc) cc.innerHTML = '<option value="">-- اختر --</option>' +
-    S.customers.map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${N(getCustBal(c.id))} ج)</option>`).join('');
+    (S.customers || []).map(c => `<option value="${c.id}">${escapeHtml(c.name)} (${N(getCustBal(c.id))} ج)</option>`).join('');
 
   const es = document.getElementById('exp-supp-sel');
   if (es) es.innerHTML = '<option value="">-- بدون مورد --</option>' +
-    S.suppliers.map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
+    (S.suppliers || []).map(s => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join('');
 }
 
 // ─────────────────────────────────────────────
@@ -101,7 +104,6 @@ function showPage(n, btn) {
   const pageEl = document.getElementById('page-' + n);
   if (pageEl) pageEl.classList.add('active');
   if (btn) btn.classList.add('active');
-
   _activePage = n;
   renderPage(n);
 }
@@ -130,19 +132,30 @@ function showApp() {
     const meta = currentUser.user_metadata;
     const shopHeader = document.getElementById('shop-name-header');
     if (shopHeader && meta?.shop_name) shopHeader.textContent = meta.shop_name;
-    checkTrial();
-    updateAdminTabVisibility();
-    renderSubscriptionStatus();
-    updateUIByPermissions(); // من security.js
+    if (typeof checkTrial === 'function') checkTrial();
+    if (typeof updateAdminTabVisibility === 'function') updateAdminTabVisibility();
+    if (typeof renderSubscriptionStatus === 'function') renderSubscriptionStatus();
+    if (typeof updateUIByPermissions === 'function') updateUIByPermissions();
   } else {
     const shopHeader = document.getElementById('shop-name-header');
     if (shopHeader) shopHeader.textContent = 'نظام المحل (محلي)';
   }
 
-  updateDates();
+  if (typeof updateDates === 'function') updateDates();
   renderAll();
-  // بدء المزامنة الدورية بعد تحميل البيانات
   if (typeof startPeriodicSync === 'function') startPeriodicSync();
+}
+
+// ─────────────────────────────────────────────
+// عرض شاشة تسجيل الدخول
+// ─────────────────────────────────────────────
+function showAuth() {
+  const loadingEl = document.getElementById('loading');
+  if (loadingEl) loadingEl.style.display = 'none';
+  const authScreen = document.getElementById('auth-screen');
+  const appEl = document.getElementById('app');
+  if (authScreen) authScreen.style.display = 'flex';
+  if (appEl) appEl.style.display = 'none';
 }
 
 // ─────────────────────────────────────────────
@@ -150,10 +163,8 @@ function showApp() {
 // ─────────────────────────────────────────────
 async function init() {
   try {
-    // تحميل محلي فوري
-    store.init(); // تم تعريف store.init() في data.js
+    if (typeof store !== 'undefined' && store.init) store.init();
 
-    // محاولة استئناف الجلسة مع timeout
     let session = null;
     try {
       const res = await Promise.race([
@@ -162,26 +173,27 @@ async function init() {
       ]);
       session = res?.data?.session;
     } catch (e) {
-      if (e.message !== 'timeout') AppError.log('init.getSession', e);
-      else console.info('Supabase: تم التشغيل offline');
+      console.info('Supabase: timeout أو offline');
     }
 
     if (session) {
       currentUser = session.user;
-      await loadUserData();
+      if (typeof loadUserData === 'function') await loadUserData();
+      showApp();
+    } else {
+      // لا يوجد مستخدم -> عرض شاشة تسجيل الدخول
+      showAuth();
     }
-
-    showApp();
   } catch (e) {
-    AppError.log('init', e, false);
-    showApp();
+    console.error('init error', e);
+    showAuth();
   } finally {
     const loadingEl = document.getElementById('loading');
     if (loadingEl) loadingEl.style.display = 'none';
   }
 }
 
-// حماية من تجمد التحميل
+// حماية إضافية
 window.addEventListener('load', () => {
   setTimeout(() => {
     const loading = document.getElementById('loading');
@@ -192,7 +204,7 @@ window.addEventListener('load', () => {
 // بدء التطبيق
 init();
 
-// تصدير الوظائف العامة (لضمان التوافق)
+// تصدير الوظائف العامة
 window.showPage = showPage;
 window.showKTab = showKTab;
 window.refreshDropdowns = refreshDropdowns;
