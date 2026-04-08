@@ -163,7 +163,8 @@ const syncUI = {
 let syncInProgress = false;
 
 async function syncWithCloud() {
-  if (!currentUser) currentUser = { id: "demo-user" };
+  // ✅ لا ننشئ مستخدم وهمي
+  if (!currentUser) return;
   if (syncInProgress) return;
   syncInProgress = true;
   
@@ -253,6 +254,9 @@ async function loadUserData() {
   }
 }
 
+// ─────────────────────────────────────────────
+// 💾 حفظ سريع للاستخدام اليدوي
+// ─────────────────────────────────────────────
 function save() {
   store._persist();
   syncWithCloud();
@@ -262,8 +266,10 @@ function saveData() {
   return syncWithCloud();
 }
 
+// تهيئة المتجر
 store.init();
 
+// تصدير للاستخدام العالمي
 window.S = S;
 window.store = store;
 window.save = save;
