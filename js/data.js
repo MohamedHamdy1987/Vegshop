@@ -163,6 +163,7 @@ const syncUI = {
 let syncInProgress = false;
 
 async function syncWithCloud() {
+  return; // تعطيل المزامنة مؤقتاً للهاتف
   // ✅ لا ننشئ مستخدم وهمي
   if (!currentUser) return;
   if (syncInProgress) return;
