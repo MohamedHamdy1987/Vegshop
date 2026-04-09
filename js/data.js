@@ -1,10 +1,9 @@
-// ===================== data.js — النسخة النهائية العاملة مع Supabase =====================
+// ===================== data.js — النسخة النهائية العاملة =====================
 
 const SUPABASE_URL = 'https://lfhrorjiukzkqhafjtdd.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxmaHJvcmppdWt6a3FoYWZqdGRkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ3OTc3NTgsImV4cCI6MjA5MDM3Mzc1OH0.eQ0w4DG_-DNvnJRJxgvJ7KhNNkBhOEswQhtbiO2my3Q';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// State manager (بدون تغيير)
 const store = {
   _state: null, _version: 1, _saveTimer: null, _isSaving: false,
   init() {
@@ -23,7 +22,7 @@ const store = {
       version: 1, lastUpdated: new Date().toISOString()
     };
   },
-  _normalize() { /* نفس الكود السابق */ 
+  _normalize() {
     const st = this._state;
     if (!st.employees) st.employees = [];
     if (!st.partners) st.partners = [];
