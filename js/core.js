@@ -125,13 +125,13 @@ window.APP = {
   // ================================================
   async dbLoad() {
     this.setSyncStatus("جارى تحميل البيانات...");
-    if (!this.currentUser) return;
+   // if (!this.currentUser) return;
     const uid = this.currentUser.id;
     for (let table of Object.keys(this.DB)) {
       try {
         const { data, error } = await sb.from(table)
           .select("*")
-          .eq("user_id", uid)
+       // .eq("user_id", uid)
           .order("created_at", { ascending: false });
         if (!error) this.DB[table] = data || [];
       } catch (e) {
