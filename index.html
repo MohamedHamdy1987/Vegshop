@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>برنامج إدارة الخضار والفواكه</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary:#14b8a6;
+  --primary-dark:#0f766e;
+  --dark:#0f172a;
+  --bg:#f0fdf9;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Cairo',sans-serif;background:var(--bg);color:var(--dark);}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:100;
+  background:white;padding:14px 24px;
+  display:flex;justify-content:space-between;align-items:center;
+  box-shadow:0 1px 8px rgba(0,0,0,0.07);
+}
+.nav-logo{font-size:18px;font-weight:900;color:var(--primary-dark);}
+.nav-cta{
+  padding:10px 20px;background:var(--primary);color:white;
+  border:none;border-radius:8px;cursor:pointer;font-family:'Cairo',sans-serif;
+  font-weight:700;font-size:14px;
+}
+
+/* HERO */
+.hero{
+  background:linear-gradient(135deg,var(--primary-dark) 0%,var(--primary) 100%);
+  color:white;text-align:center;padding:80px 20px 90px;position:relative;overflow:hidden;
+}
+.hero::after{
+  content:"";position:absolute;bottom:-1px;left:0;right:0;height:60px;
+  background:var(--bg);clip-path:ellipse(55% 100% at 50% 100%);
+}
+.hero h1{font-size:clamp(24px,5vw,40px);font-weight:900;margin-bottom:14px;line-height:1.3;}
+.hero p{font-size:clamp(14px,2.5vw,18px);opacity:0.92;max-width:560px;margin:0 auto 28px;}
+.hero-btns{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;}
+.btn-white{
+  padding:14px 28px;background:white;color:var(--primary-dark);
+  border:none;border-radius:10px;font-family:'Cairo',sans-serif;
+  font-weight:800;font-size:15px;cursor:pointer;
+  box-shadow:0 4px 20px rgba(0,0,0,0.15);
+}
+.btn-outline{
+  padding:14px 28px;background:transparent;color:white;
+  border:2px solid rgba(255,255,255,0.6);border-radius:10px;
+  font-family:'Cairo',sans-serif;font-weight:700;font-size:15px;cursor:pointer;
+}
+
+/* SECTION */
+.section{padding:60px 20px;text-align:center;}
+.section-title{font-size:clamp(20px,4vw,28px);font-weight:900;margin-bottom:8px;color:var(--dark);}
+.section-sub{font-size:15px;color:#64748b;max-width:500px;margin:0 auto 36px;}
+.container{max-width:1000px;margin:0 auto;}
+
+/* FEATURES */
+.features-grid{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:16px;
+}
+.feature-card{
+  background:white;padding:24px 18px;border-radius:14px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.07);border:1px solid #e2e8f0;
+  transition:transform 0.2s;
+}
+.feature-card:hover{transform:translateY(-4px);}
+.feature-icon{font-size:32px;margin-bottom:10px;}
+.feature-card h3{font-size:15px;font-weight:700;margin-bottom:6px;}
+.feature-card p{font-size:13px;color:#64748b;line-height:1.5;}
+
+/* PROBLEM */
+.problem-section{background:white;padding:60px 20px;}
+.problem-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;max-width:700px;margin:0 auto 32px;}
+.problem-item{
+  background:#fef2f2;padding:16px;border-radius:10px;
+  border-right:4px solid #ef4444;text-align:right;font-size:14px;font-weight:600;color:#991b1b;
+}
+.solution-item{
+  background:#f0fdf4;padding:16px;border-radius:10px;
+  border-right:4px solid #22c55e;text-align:right;font-size:14px;font-weight:600;color:#166534;
+}
+
+/* TESTIMONIALS */
+.testimonials{display:flex;flex-direction:column;gap:14px;max-width:560px;margin:0 auto;}
+.testimonial{
+  background:white;padding:20px;border-radius:12px;
+  box-shadow:0 2px 10px rgba(0,0,0,0.07);text-align:right;
+  border-right:4px solid var(--primary);font-size:14px;line-height:1.7;
+}
+.testimonial b{display:block;margin-top:8px;color:var(--primary-dark);font-size:13px;}
+
+/* PRICING */
+.pricing-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:20px;max-width:600px;margin:0 auto;}
+.price-card{
+  background:white;padding:28px 24px;border-radius:14px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.08);border:2px solid #e2e8f0;
+}
+.price-card.featured{border-color:var(--primary);position:relative;}
+.price-card.featured::before{
+  content:"⭐ الأوفر";position:absolute;top:-12px;right:50%;transform:translateX(50%);
+  background:var(--primary);color:white;padding:4px 14px;border-radius:20px;
+  font-size:12px;font-weight:700;white-space:nowrap;
+}
+.price-card h3{font-size:16px;font-weight:700;margin-bottom:12px;}
+.price-amount{font-size:36px;font-weight:900;color:var(--primary-dark);margin-bottom:4px;}
+.price-amount span{font-size:14px;color:#64748b;font-weight:400;}
+.price-note{font-size:13px;color:#64748b;margin-bottom:20px;}
+.price-btn{
+  width:100%;padding:13px;background:var(--primary);color:white;
+  border:none;border-radius:10px;cursor:pointer;font-family:'Cairo',sans-serif;
+  font-weight:700;font-size:15px;
+}
+
+/* CTA */
+.cta-section{
+  background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+  color:white;padding:60px 20px;text-align:center;
+}
+.cta-section h2{font-size:clamp(20px,4vw,28px);font-weight:900;margin-bottom:14px;}
+.cta-section p{opacity:0.9;margin-bottom:24px;font-size:15px;}
+
+/* FOOTER */
+footer{
+  background:var(--dark);color:rgba(255,255,255,0.7);
+  text-align:center;padding:20px;font-size:13px;
+}
+
+/* WHATSAPP */
+.whatsapp-btn{
+  position:fixed;bottom:24px;left:24px;
+  background:#25D366;color:white;width:54px;height:54px;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:24px;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,0.2);
+  z-index:999;transition:transform 0.2s;
+}
+.whatsapp-btn:hover{transform:scale(1.08);}
+
+@media(max-width:600px){
+  .problem-grid{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">🍊 النظام</div>
+  <button class="nav-cta" onclick="goApp()">جرب مجاناً</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <h1>نظام إدارة الخضار والفواكه<br>بدل الدفتر والكلام</h1>
+  <p>تابع حساباتك بدقة، عرف فلوسك كل يوم، وفر وقتك وجهدك بنظام متكامل</p>
+  <div class="hero-btns">
+    <button class="btn-white" onclick="goApp()">🚀 ابدأ التجربة المجانية</button>
+    <button class="btn-outline" onclick="contact()">💬 تواصل معنا</button>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<div class="section container">
+  <p class="section-title">🚀 كل اللي محتاجه في مكان واحد</p>
+  <p class="section-sub">نظام متكامل صُمم خصيصاً لتجار الخضار والفواكه بالجملة</p>
+  <div class="features-grid">
+    <div class="feature-card"><div class="feature-icon">🛒</div><h3>تسجيل المبيعات</h3><p>سجل كاش وآجل مع ربط العملاء تلقائياً</p></div>
+    <div class="feature-card"><div class="feature-icon">👥</div><h3>حسابات العملاء</h3><p>كشف حساب لكل عميل مع إرسال واتساب</p></div>
+    <div class="feature-card"><div class="feature-icon">🚚</div><h3>حسابات الموردين</h3><p>فواتير أوتوماتيك مع خصم العمولة والنولون</p></div>
+    <div class="feature-card"><div class="feature-icon">🧾</div><h3>فواتير أوتوماتيك</h3><p>فاتورة تنشأ تلقائياً لما الصنف ينتهي بالكامل</p></div>
+    <div class="feature-card"><div class="feature-icon">💰</div><h3>الخزنة</h3><p>تابع الكاش والمصروفات والصافي لحظة بلحظة</p></div>
+    <div class="feature-card"><div class="feature-icon">📆</div><h3>إغلاق اليوم</h3><p>رحّل المتبقي وابدأ يوم جديد بضغطة واحدة</p></div>
+    <div class="feature-card"><div class="feature-icon">👷</div><h3>الموظفين</h3><p>مرتبات وغياب وسلف بشكل منظم</p></div>
+    <div class="feature-card"><div class="feature-icon">🤝</div><h3>الشركاء</h3><p>يومية وأرباح ودفعات لكل شريك</p></div>
+    <div class="feature-card"><div class="feature-icon">☁️</div><h3>سحابي 100%</h3><p>بياناتك متزامنة من أي جهاز في أي وقت</p></div>
+  </div>
+</div>
+
+<!-- PROBLEM -->
+<div class="problem-section">
+  <div class="container">
+    <p class="section-title" style="margin-bottom:8px">❌ بتواجه المشاكل دي؟</p>
+    <p class="section-sub">الدفتر والأوراق بيضيعوا الفلوس والوقت</p>
+    <div class="problem-grid">
+      <div class="problem-item">ضياع الفلوس من الحسابات الغلط</div>
+      <div class="solution-item">حسابات دقيقة تلقائية بدون غلط</div>
+      <div class="problem-item">تعب من الدفتر والورقة والقلم</div>
+      <div class="solution-item">كل حاجة في موبايلك أو كمبيوترك</div>
+      <div class="problem-item">ما تعرفش مين عليه ومين ليه فلوس</div>
+      <div class="solution-item">كشف حساب فوري لكل عميل ومورد</div>
+      <div class="problem-item">ما تعرفش صافي يومك قد إيه</div>
+      <div class="solution-item">ملخص يومي فوري بكل التفاصيل</div>
+    </div>
+  </div>
+</div>
+
+<!-- TESTIMONIALS -->
+<div class="section container">
+  <p class="section-title">💬 آراء العملاء</p>
+  <p class="section-sub">ناس زيك بيستخدموا النظام وشايفين الفرق</p>
+  <div class="testimonials">
+    <div class="testimonial">
+      "بقيت عارف حسابي كل يوم بسهولة، الدنيا اتنظمت وما بقيتش خايف أضيع فلوس"
+      <b>— تاجر فواكه بالجملة</b>
+    </div>
+    <div class="testimonial">
+      "الفواتير بتتعمل لوحدها لما الصنف يخلص، وبعت الكشف للمورد على واتساب في ثانية"
+      <b>— محل خضار بالجملة</b>
+    </div>
+    <div class="testimonial">
+      "أحسن استثمار عملته، وفر عليّا ساعات كل يوم وبقيت عارف صافيّ بالدقة"
+      <b>— تاجر بالسوق</b>
+    </div>
+  </div>
+</div>
+
+<!-- PRICING -->
+<div class="section" style="background:white;">
+  <div class="container">
+    <p class="section-title">💰 الأسعار</p>
+    <p class="section-sub">اشتراك بسيط يوفر عليك أضعافه</p>
+    <div class="pricing-grid">
+      <div class="price-card">
+        <h3>الخطة الشهرية</h3>
+        <div class="price-amount">750 <span>جنيه/شهر</span></div>
+        <p class="price-note">شهر تجربة مجاني</p>
+        <button class="price-btn" onclick="contact()">ابدأ الاشتراك</button>
+      </div>
+      <div class="price-card featured">
+        <h3>الخطة السنوية</h3>
+        <div class="price-amount">6000 <span>جنيه/سنة</span></div>
+        <p class="price-note">توفير 3000 جنيه</p>
+        <button class="price-btn" onclick="contact()">ابدأ الاشتراك</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>🔥 ابدأ دلوقتي</h2>
+  <p>شهر تجربة مجاني، لا تضيع وقتك أكتر</p>
+  <button class="btn-white" onclick="goApp()">جرب البرنامج مجاناً</button>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 نظام إدارة الخضار والفواكه · جميع الحقوق محفوظة</p>
+</footer>
+
+<!-- WHATSAPP -->
+<a class="whatsapp-btn" href="https://wa.me/201XXXXXXXXX" target="_blank" title="تواصل معنا">💬</a>
+
+<script>
+const WHATSAPP = "https://wa.me/201XXXXXXXXX"; // ← ضع رقمك هنا
+function goApp(){ window.location.href = "app.html"; }
+function contact(){ window.open(WHATSAPP,"_blank"); }
+</script>
+</body>
+</html>
