@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<title>نظام إدارة الخضار والفواكه</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- شاشة التحميل -->
+<div id="loadingScreen">
+  <div class="loader"></div>
+  <p>جاري تحميل النظام...</p>
+</div>
+
+<!-- شريط المزامنة -->
+<div id="syncBar"><span id="syncText">جارى الاتصال...</span></div>
+
+<!-- التطبيق الرئيسي -->
+<div class="app hidden" id="app">
+
+  <!-- SIDEBAR (desktop only) -->
+  <aside class="sidebar">
+    <div class="logo">🍊 النظام</div>
+    <nav id="sidebarNav">
+      <button onclick="navigate('dashboard')">📊 الرئيسية</button>
+      <button onclick="navigate('baqi')">📦 الباقي</button>
+      <button onclick="navigate('nazil')">🚛 المنتهي</button>
+      <button onclick="navigate('sales')">🛒 المبيعات</button>
+      <button onclick="navigate('tarhil')">📋 الترحيلات</button>
+      <button onclick="navigate('customers')">👥 العملاء</button>
+      <button onclick="navigate('suppliers')">🚚 الموردين</button>
+      <button onclick="navigate('invoices')">🧾 الفواتير</button>
+      <button onclick="navigate('employees')">👷 الموظفين</button>
+      <button onclick="navigate('partners')">🤝 الشركاء</button>
+      <button onclick="navigate('shops')">🏬 المحلات</button>
+      <button onclick="navigate('khazna')">💰 الخزنة</button>
+      <button onclick="navigate('subscription')">💳 الاشتراك</button>
+      <button onclick="navigate('admin')">🛠 المشرف</button>
+    </nav>
+    <div class="sidebar-footer">
+      <button onclick="logout()">🚪 تسجيل خروج</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="content">
+    <header class="header">
+      <h1 id="pageTitle">لوحة التحكم</h1>
+      <div class="header-actions">
+        <span id="userInfo"></span>
+        <button id="closeDayBtn" class="btn btn-danger"
+                onclick="triggerCloseDay()" style="display:none;">
+          📆 إغلاق اليوم
+        </button>
+      </div>
+    </header>
+
+    <div class="page-container">
+      <section id="dashboard"    class="page"></section>
+      <section id="baqi"         class="page"></section>
+      <section id="nazil"        class="page"></section>
+      <section id="sales"        class="page"></section>
+      <section id="tarhil"       class="page"></section>
+      <section id="customers"    class="page"></section>
+      <section id="suppliers"    class="page"></section>
+      <section id="invoices"     class="page"></section>
+      <section id="employees"    class="page"></section>
+      <section id="partners"     class="page"></section>
+      <section id="shops"        class="page"></section>
+      <section id="khazna"       class="page"></section>
+      <section id="subscription" class="page"></section>
+      <section id="admin"        class="page"></section>
+    </div>
+  </main>
+</div>
+
+<!-- MOBILE BOTTOM NAV -->
+<nav id="mobileNav">
+  <div class="nav-inner">
+    <button onclick="navigate('dashboard')" data-page="dashboard">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label">الرئيسية</span>
+    </button>
+    <button onclick="navigate('sales')" data-page="sales">
+      <span class="nav-icon">🛒</span>
+      <span class="nav-label">المبيعات</span>
+    </button>
+    <button onclick="navigate('baqi')" data-page="baqi">
+      <span class="nav-icon">📦</span>
+      <span class="nav-label">الباقي</span>
+    </button>
+    <button onclick="navigate('customers')" data-page="customers">
+      <span class="nav-icon">👥</span>
+      <span class="nav-label">العملاء</span>
+    </button>
+    <button onclick="navigate('suppliers')" data-page="suppliers">
+      <span class="nav-icon">🚚</span>
+      <span class="nav-label">الموردين</span>
+    </button>
+    <button onclick="navigate('khazna')" data-page="khazna">
+      <span class="nav-icon">💰</span>
+      <span class="nav-label">الخزنة</span>
+    </button>
+    <button onclick="navigate('invoices')" data-page="invoices">
+      <span class="nav-icon">🧾</span>
+      <span class="nav-label">الفواتير</span>
+    </button>
+    <button onclick="navigate('employees')" data-page="employees">
+      <span class="nav-icon">👷</span>
+      <span class="nav-label">الموظفين</span>
+    </button>
+    <button onclick="navigate('partners')" data-page="partners">
+      <span class="nav-icon">🤝</span>
+      <span class="nav-label">الشركاء</span>
+    </button>
+    <button onclick="navigate('nazil')" data-page="nazil">
+      <span class="nav-icon">🚛</span>
+      <span class="nav-label">المنتهي</span>
+    </button>
+    <button onclick="navigate('tarhil')" data-page="tarhil">
+      <span class="nav-icon">📋</span>
+      <span class="nav-label">الترحيلات</span>
+    </button>
+    <button onclick="navigate('shops')" data-page="shops">
+      <span class="nav-icon">🏬</span>
+      <span class="nav-label">المحلات</span>
+    </button>
+    <button onclick="navigate('subscription')" data-page="subscription">
+      <span class="nav-icon">💳</span>
+      <span class="nav-label">الاشتراك</span>
+    </button>
+    <button onclick="navigate('admin')" data-page="admin">
+      <span class="nav-icon">🛠</span>
+      <span class="nav-label">المشرف</span>
+    </button>
+    <button onclick="logout()" class="nav-logout">
+      <span class="nav-icon">🚪</span>
+      <span class="nav-label">خروج</span>
+    </button>
+  </div>
+</nav>
+
+<!-- شاشة الدخول -->
+<div id="authScreen">
+  <div class="auth-box">
+    <h2>🍊 تسجيل الدخول</h2>
+    <label>البريد الإلكتروني</label>
+    <input id="loginEmail"    type="email"    placeholder="example@mail.com">
+    <label>كلمة المرور</label>
+    <input id="loginPassword" type="password" placeholder="••••••">
+    <button class="btn btn-primary" onclick="login()">دخول</button>
+    <hr>
+    <h3>إنشاء حساب جديد</h3>
+    <label>اسم المحل</label>
+    <input id="regName"     type="text"     placeholder="محل الحاج أحمد">
+    <label>البريد الإلكتروني</label>
+    <input id="regEmail"    type="email"    placeholder="example@mail.com">
+    <label>كلمة المرور</label>
+    <input id="regPassword" type="password" placeholder="6 أحرف على الأقل">
+    <button class="btn btn-success" onclick="register()">تسجيل</button>
+  </div>
+</div>
+
+<!-- المودال -->
+<div id="modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-header">
+      <h3 id="modalTitle"></h3>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modalBody" class="modal-body"></div>
+    <div class="modal-footer" id="modalFooter"></div>
+  </div>
+</div>
+
+<!-- التوست -->
+<div id="toast"></div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
